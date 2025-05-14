@@ -5,7 +5,7 @@
     "type": "module",
     "scripts": {
         "build": "tsc && chmod 755 build/index.js && node generateMCPSettings",
-        "start": "node dist/index.js",
+        "start": "node build/index.js",
         "dev": "ts-node-esm src/index.ts",
         "lint": "eslint . --ext .ts",
         "lint:fix": "eslint . --ext .ts --fix",
