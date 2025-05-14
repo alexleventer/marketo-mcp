@@ -29,19 +29,19 @@ class TokenManager {
       // Extract the identity URL from the base URL
       // Convert from https://instance.mktorest.com/rest to https://instance.mktorest.com/identity
       const identityUrl = MARKETO_BASE_URL.replace('/rest', '/identity');
-      
+
       const response = await axios.get(`${identityUrl}/oauth/token`, {
         params: {
           grant_type: 'client_credentials',
           client_id: this.clientId,
-          client_secret: this.clientSecret
-        }
+          client_secret: this.clientSecret,
+        },
       });
 
       const data = response.data as TokenResponse;
       this.accessToken = data.access_token;
       // Set expiry to slightly before the actual expiry to ensure we don't use an expired token
-      this.tokenExpiry = Date.now() + ((data.expires_in - 60) * 1000);
+      this.tokenExpiry = Date.now() + (data.expires_in - 60) * 1000;
 
       return this.accessToken;
     } catch (error: any) {
@@ -51,4 +51,4 @@ class TokenManager {
   }
 }
 
-export { TokenManager }; 
+export { TokenManager };

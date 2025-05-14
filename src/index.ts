@@ -1,6 +1,6 @@
-import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { z } from "zod";
+import { McpServer, ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { z } from 'zod';
 import axios from 'axios';
 import { MARKETO_BASE_URL, MARKETO_CLIENT_ID, MARKETO_CLIENT_SECRET } from './constants.js';
 import { TokenManager } from './auth.js';
@@ -13,15 +13,20 @@ const tokenManager = new TokenManager(MARKETO_CLIENT_ID, MARKETO_CLIENT_SECRET);
 
 // Create an MCP server
 const server = new McpServer({
-  name: "MarketoAPI",
-  version: "1.0.0"
+  name: 'MarketoAPI',
+  version: '1.0.0',
 });
 
 // Helper function to make API requests with authentication
-async function makeApiRequest(endpoint: string, method: string, data?: any, contentType: string = 'application/json') {
+async function makeApiRequest(
+  endpoint: string,
+  method: string,
+  data?: any,
+  contentType: string = 'application/json'
+) {
   const token = await tokenManager.getToken();
   const headers: any = {
-    Authorization: `Bearer ${token}`
+    Authorization: `Bearer ${token}`,
   };
 
   if (contentType) {
@@ -32,55 +37,59 @@ async function makeApiRequest(endpoint: string, method: string, data?: any, cont
     const response = await axios({
       url: `${MARKETO_BASE_URL}${endpoint}`,
       method: method,
-      data: contentType === 'application/x-www-form-urlencoded' ? new URLSearchParams(data).toString() : data,
-      headers
+      data:
+        contentType === 'application/x-www-form-urlencoded'
+          ? new URLSearchParams(data).toString()
+          : data,
+      headers,
     });
     return response.data;
   } catch (error: any) {
-    console.error("API request failed:", error.response?.data || error.message);
+    console.error('API request failed:', error.response?.data || error.message);
     throw error;
   }
 }
 
 // Tool: Get Forms
-server.tool("marketo_get_forms",
+server.tool(
+  'marketo_get_forms',
   {
     maxReturn: z.number().optional(),
     offset: z.number().optional(),
-    status: z.enum(['approved', 'draft']).optional()
+    status: z.enum(['approved', 'draft']).optional(),
   },
   async ({ maxReturn = 200, offset = 0, status }) => {
     try {
       const params = new URLSearchParams({
         maxReturn: maxReturn.toString(),
-        offset: offset.toString()
+        offset: offset.toString(),
       });
-      
+
       if (status) {
         params.append('status', status);
       }
 
-      const response = await makeApiRequest(
-        `/asset/v1/forms.json?${params.toString()}`,
-        'GET'
-      );
+      const response = await makeApiRequest(`/asset/v1/forms.json?${params.toString()}`, 'GET');
 
       return {
-        content: [{ type: "text", text: JSON.stringify(response, null, 2) }]
+        content: [{ type: 'text', text: JSON.stringify(response, null, 2) }],
       };
     } catch (error: any) {
       return {
-        content: [{ type: "text", text: `Error: ${error.response?.data?.message || error.message}` }]
+        content: [
+          { type: 'text', text: `Error: ${error.response?.data?.message || error.message}` },
+        ],
       };
     }
   }
 );
 
 // Tool: Approve Form
-server.tool("marketo_approve_form",
+server.tool(
+  'marketo_approve_form',
   {
     formId: z.number(),
-    comment: z.string().optional()
+    comment: z.string().optional(),
   },
   async ({ formId, comment }) => {
     try {
@@ -91,11 +100,13 @@ server.tool("marketo_approve_form",
       );
 
       return {
-        content: [{ type: "text", text: JSON.stringify(response, null, 2) }]
+        content: [{ type: 'text', text: JSON.stringify(response, null, 2) }],
       };
     } catch (error: any) {
       return {
-        content: [{ type: "text", text: `Error: ${error.response?.data?.message || error.message}` }]
+        content: [
+          { type: 'text', text: `Error: ${error.response?.data?.message || error.message}` },
+        ],
       };
     }
   }
@@ -103,19 +114,20 @@ server.tool("marketo_approve_form",
 
 // Tool: Clone Form
 // https://developer.adobe.com/marketo-apis/api/asset/#operation/cloneLpFormsUsingPOST
-server.tool("marketo_clone_form",
+server.tool(
+  'marketo_clone_form',
   {
     formId: z.number(),
     name: z.string(),
     description: z.string().optional(),
-    folderId: z.number()
+    folderId: z.number(),
   },
   async ({ formId, name, description, folderId }) => {
     try {
       const formData = {
         name,
         description,
-        folder: JSON.stringify({ id: folderId, type: "Folder" })
+        folder: JSON.stringify({ id: folderId, type: 'Folder' }),
       };
 
       const response = await makeApiRequest(
@@ -126,34 +138,36 @@ server.tool("marketo_clone_form",
       );
 
       return {
-        content: [{ type: "text", text: JSON.stringify(response, null, 2) }]
+        content: [{ type: 'text', text: JSON.stringify(response, null, 2) }],
       };
     } catch (error: any) {
       return {
-        content: [{ type: "text", text: `Error: ${error.response?.data?.message || error.message}` }]
+        content: [
+          { type: 'text', text: `Error: ${error.response?.data?.message || error.message}` },
+        ],
       };
     }
   }
 );
 
 // Tool: Get Form by ID
-server.tool("marketo_get_form_by_id",
+server.tool(
+  'marketo_get_form_by_id',
   {
-    formId: z.number()
+    formId: z.number(),
   },
   async ({ formId }) => {
     try {
-      const response = await makeApiRequest(
-        `/asset/v1/form/${formId}.json`,
-        'GET'
-      );
+      const response = await makeApiRequest(`/asset/v1/form/${formId}.json`, 'GET');
 
       return {
-        content: [{ type: "text", text: JSON.stringify(response, null, 2) }]
+        content: [{ type: 'text', text: JSON.stringify(response, null, 2) }],
       };
     } catch (error: any) {
       return {
-        content: [{ type: "text", text: `Error: ${error.response?.data?.message || error.message}` }]
+        content: [
+          { type: 'text', text: `Error: ${error.response?.data?.message || error.message}` },
+        ],
       };
     }
   }

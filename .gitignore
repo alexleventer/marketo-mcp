@@ -32,3 +32,9 @@ build/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# ESLint
+.eslintcache
+
+# Coverage
+coverage/
