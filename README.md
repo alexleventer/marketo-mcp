@@ -52,8 +52,9 @@ npm run build
 
 1. Open Claude Desktop
 2. Go to Developer Settings
-3. Paste the configuration settings that were output during the build process
+3. [Paste the configuration settings](https://modelcontextprotocol.io/quickstart/user#2-add-the-filesystem-mcp-server) that were output during the build process
 4. Save the configuration
+5. Restart Claude Desktop
 
 
 ## Available Tools
