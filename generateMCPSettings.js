@@ -1,13 +1,15 @@
 import path from 'path';
 import fs from 'fs';
 
-const filePath = path.join(process.cwd(), 'build', 'constants.js');
+const serverPath = path.join(process.cwd(), 'build', 'index.js');
+const constantsPath = path.join(process.cwd(), 'build', 'constants.js');
+
 
 // look for any env variables inside the file
 const env = {};
 
-// Read the file
-const fileContent = fs.readFileSync(filePath, 'utf-8');
+// Read the constants file
+const fileContent = fs.readFileSync(constantsPath, 'utf-8');
 
 // Find all env variables
 const envRegex = /process\.env\.(\w+)/g;
@@ -21,7 +23,7 @@ const settings = {
     mcpServers : {
         "Marketo": {
             command: "node",
-            args: [filePath],
+            args: [serverPath],
             env: env
         }
     }
