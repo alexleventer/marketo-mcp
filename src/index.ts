@@ -4,6 +4,7 @@ import { z } from 'zod';
 import axios from 'axios';
 import { MARKETO_BASE_URL, MARKETO_CLIENT_ID, MARKETO_CLIENT_SECRET } from './constants.js';
 import { TokenManager } from './auth.js';
+import 'dotenv/config';
 
 if (!MARKETO_CLIENT_ID || !MARKETO_CLIENT_SECRET) {
   throw new Error('MARKETO_CLIENT_ID and MARKETO_CLIENT_SECRET environment variables are required');
