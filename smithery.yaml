@@ -1,0 +1,39 @@
+# Smithery configuration file: https://smithery.ai/docs/build/project-config
+
+startCommand:
+  type: stdio
+  configSchema:
+    # JSON Schema defining the configuration options for the MCP.
+    type: object
+    required:
+      - marketoBaseUrl
+      - marketoClientId
+      - marketoClientSecret
+    properties:
+      marketoBaseUrl:
+        type: string
+        description: Base URL of the Marketo instance, e.g.
+          https://123-ABC-456.mktorest.com/rest
+      marketoClientId:
+        type: string
+        description: Marketo API Client ID
+      marketoClientSecret:
+        type: string
+        description: Marketo API Client Secret
+    description: Configuration for the Marketo MCP server
+  commandFunction:
+    # A JS function that produces the CLI command based on the given config to start the MCP on stdio.
+    |-
+    (config) => ({
+      command: 'node',
+      args: ['build/index.js'],
+      env: {
+        MARKETO_BASE_URL: config.marketoBaseUrl,
+        MARKETO_CLIENT_ID: config.marketoClientId,
+        MARKETO_CLIENT_SECRET: config.marketoClientSecret
+      }
+    })
+  exampleConfig:
+    marketoBaseUrl: https://123-ABC-456.mktorest.com/rest
+    marketoClientId: your-client-id
+    marketoClientSecret: your-client-secret
