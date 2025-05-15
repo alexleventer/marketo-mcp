@@ -177,5 +177,59 @@ server.tool(
   }
 );
 
+// Tool: Get Smart Lists
+// https://developer.adobe.com/marketo-apis/api/asset/#operation/getSmartListsUsingGET
+server.tool(
+  'marketo_get_smart_lists',
+  {
+    maxReturn: z.number().optional(),
+    offset: z.number().optional(),
+  },
+  async ({ maxReturn = 200, offset = 0 }) => {
+    try {
+      const params = new URLSearchParams({
+        maxReturn: maxReturn.toString(),
+        offset: offset.toString(),
+      });
+
+      const response = await makeApiRequest(`/asset/v1/smartLists.json?${params.toString()}`, 'GET');
+
+      return {
+        content: [{ type: 'text', text: JSON.stringify(response, null, 2) }],
+      };
+    } catch (error: any) {
+      return {
+        content: [
+          { type: 'text', text: `Error: ${error.response?.data?.message || error.message}` },
+        ],
+      };
+    }
+  }
+);
+
+// Tool: Get Smart List by ID
+// https://developer.adobe.com/marketo-apis/api/asset/#operation/getSmartListByIdUsingGET
+server.tool(
+  'marketo_get_smart_list_by_id',
+  {
+    smartListId: z.number(),
+  },
+  async ({ smartListId }) => {
+    try {
+      const response = await makeApiRequest(`/asset/v1/smartList/${smartListId}.json`, 'GET');
+
+      return {
+        content: [{ type: 'text', text: JSON.stringify(response, null, 2) }],
+      };
+    } catch (error: any) {
+      return {
+        content: [
+          { type: 'text', text: `Error: ${error.response?.data?.message || error.message}` },
+        ],
+      };
+    }
+  }
+);
+
 const transport = new StdioServerTransport();
 await server.connect(transport);
