@@ -378,5 +378,324 @@ server.tool(
   }
 );
 
+// Tool: Get Lead by ID
+// https://developer.adobe.com/marketo-apis/api/mapi/#operation/getLeadByIdUsingGET
+server.tool(
+  'marketo_get_lead_by_id',
+  {
+    leadId: z.number(),
+    fields: z.array(z.string()).optional(),
+  },
+  async ({ leadId, fields }) => {
+    try {
+      const params = new URLSearchParams();
+      if (fields) {
+        params.append('fields', fields.join(','));
+      }
+
+      const response = await makeApiRequest(
+        `/rest/v1/lead/${leadId}.json${params.toString() ? `?${params.toString()}` : ''}`,
+        'GET'
+      );
+
+      return {
+        content: [{ type: 'text', text: JSON.stringify(response, null, 2) }],
+      };
+    } catch (error: any) {
+      return {
+        content: [
+          { type: 'text', text: `Error: ${error.response?.data?.message || error.message}` },
+        ],
+      };
+    }
+  }
+);
+
+// Tool: Get Lead by Email
+// https://developer.adobe.com/marketo-apis/api/mapi/#operation/getLeadByEmailUsingGET
+server.tool(
+  'marketo_get_lead_by_email',
+  {
+    email: z.string().email(),
+    fields: z.array(z.string()).optional(),
+  },
+  async ({ email, fields }) => {
+    try {
+      const params = new URLSearchParams();
+      if (fields) {
+        params.append('fields', fields.join(','));
+      }
+
+      const response = await makeApiRequest(
+        `/rest/v1/lead/${email}.json${params.toString() ? `?${params.toString()}` : ''}`,
+        'GET'
+      );
+
+      return {
+        content: [{ type: 'text', text: JSON.stringify(response, null, 2) }],
+      };
+    } catch (error: any) {
+      return {
+        content: [
+          { type: 'text', text: `Error: ${error.response?.data?.message || error.message}` },
+        ],
+      };
+    }
+  }
+);
+
+// Tool: Create/Update Lead
+// https://developer.adobe.com/marketo-apis/api/mapi/#operation/createOrUpdateLeadsUsingPOST
+server.tool(
+  'marketo_create_or_update_lead',
+  {
+    input: z.array(
+      z.object({
+        email: z.string().email(),
+        firstName: z.string().optional(),
+        lastName: z.string().optional(),
+        company: z.string().optional(),
+        title: z.string().optional(),
+        phone: z.string().optional(),
+        address: z.string().optional(),
+        city: z.string().optional(),
+        state: z.string().optional(),
+        zipCode: z.string().optional(),
+        country: z.string().optional(),
+        website: z.string().optional(),
+        customFields: z.record(z.string(), z.any()).optional(),
+      })
+    ),
+    lookupField: z.enum(['email', 'id', 'cookie']).optional(),
+    partitionName: z.string().optional(),
+  },
+  async ({ input, lookupField = 'email', partitionName }) => {
+    try {
+      const data = {
+        input,
+        lookupField,
+        partitionName,
+      };
+
+      const response = await makeApiRequest('/rest/v1/leads.json', 'POST', data);
+
+      return {
+        content: [{ type: 'text', text: JSON.stringify(response, null, 2) }],
+      };
+    } catch (error: any) {
+      return {
+        content: [
+          { type: 'text', text: `Error: ${error.response?.data?.message || error.message}` },
+        ],
+      };
+    }
+  }
+);
+
+// Tool: Delete Lead
+// https://developer.adobe.com/marketo-apis/api/mapi/#operation/deleteLeadUsingPOST
+server.tool(
+  'marketo_delete_lead',
+  {
+    leadId: z.number(),
+  },
+  async ({ leadId }) => {
+    try {
+      const response = await makeApiRequest(`/rest/v1/leads/${leadId}/delete.json`, 'POST');
+
+      return {
+        content: [{ type: 'text', text: JSON.stringify(response, null, 2) }],
+      };
+    } catch (error: any) {
+      return {
+        content: [
+          { type: 'text', text: `Error: ${error.response?.data?.message || error.message}` },
+        ],
+      };
+    }
+  }
+);
+
+// Tool: Get Lead Activities
+// https://developer.adobe.com/marketo-apis/api/mapi/#operation/getLeadActivitiesUsingGET
+server.tool(
+  'marketo_get_lead_activities',
+  {
+    leadId: z.number(),
+    activityTypeIds: z.array(z.number()).optional(),
+    nextPageToken: z.string().optional(),
+    batchSize: z.number().optional(),
+  },
+  async ({ leadId, activityTypeIds, nextPageToken, batchSize = 100 }) => {
+    try {
+      const params = new URLSearchParams({
+        batchSize: batchSize.toString(),
+      });
+
+      if (activityTypeIds) {
+        params.append('activityTypeIds', activityTypeIds.join(','));
+      }
+      if (nextPageToken) {
+        params.append('nextPageToken', nextPageToken);
+      }
+
+      const response = await makeApiRequest(
+        `/rest/v1/activities/lead/${leadId}.json?${params.toString()}`,
+        'GET'
+      );
+
+      return {
+        content: [{ type: 'text', text: JSON.stringify(response, null, 2) }],
+      };
+    } catch (error: any) {
+      return {
+        content: [
+          { type: 'text', text: `Error: ${error.response?.data?.message || error.message}` },
+        ],
+      };
+    }
+  }
+);
+
+// Tool: Get Lead Changes
+// https://developer.adobe.com/marketo-apis/api/mapi/#operation/getLeadChangesUsingGET
+server.tool(
+  'marketo_get_lead_changes',
+  {
+    leadId: z.number(),
+    fields: z.array(z.string()).optional(),
+    nextPageToken: z.string().optional(),
+    batchSize: z.number().optional(),
+  },
+  async ({ leadId, fields, nextPageToken, batchSize = 100 }) => {
+    try {
+      const params = new URLSearchParams({
+        batchSize: batchSize.toString(),
+      });
+
+      if (fields) {
+        params.append('fields', fields.join(','));
+      }
+      if (nextPageToken) {
+        params.append('nextPageToken', nextPageToken);
+      }
+
+      const response = await makeApiRequest(
+        `/rest/v1/activities/lead/${leadId}/changes.json?${params.toString()}`,
+        'GET'
+      );
+
+      return {
+        content: [{ type: 'text', text: JSON.stringify(response, null, 2) }],
+      };
+    } catch (error: any) {
+      return {
+        content: [
+          { type: 'text', text: `Error: ${error.response?.data?.message || error.message}` },
+        ],
+      };
+    }
+  }
+);
+
+// Tool: Get Lead Lists
+// https://developer.adobe.com/marketo-apis/api/mapi/#operation/getLeadListsUsingGET
+server.tool(
+  'marketo_get_lead_lists',
+  {
+    leadId: z.number(),
+    batchSize: z.number().optional(),
+    nextPageToken: z.string().optional(),
+  },
+  async ({ leadId, batchSize = 100, nextPageToken }) => {
+    try {
+      const params = new URLSearchParams({
+        batchSize: batchSize.toString(),
+      });
+
+      if (nextPageToken) {
+        params.append('nextPageToken', nextPageToken);
+      }
+
+      const response = await makeApiRequest(
+        `/rest/v1/lists/${leadId}/leads.json?${params.toString()}`,
+        'GET'
+      );
+
+      return {
+        content: [{ type: 'text', text: JSON.stringify(response, null, 2) }],
+      };
+    } catch (error: any) {
+      return {
+        content: [
+          { type: 'text', text: `Error: ${error.response?.data?.message || error.message}` },
+        ],
+      };
+    }
+  }
+);
+
+// Tool: Add Lead to List
+// https://developer.adobe.com/marketo-apis/api/mapi/#operation/addLeadsToListUsingPOST
+server.tool(
+  'marketo_add_lead_to_list',
+  {
+    listId: z.number(),
+    leadIds: z.array(z.number()),
+  },
+  async ({ listId, leadIds }) => {
+    try {
+      const data = {
+        input: leadIds.map(id => ({ id })),
+      };
+
+      const response = await makeApiRequest(`/rest/v1/lists/${listId}/leads.json`, 'POST', data);
+
+      return {
+        content: [{ type: 'text', text: JSON.stringify(response, null, 2) }],
+      };
+    } catch (error: any) {
+      return {
+        content: [
+          { type: 'text', text: `Error: ${error.response?.data?.message || error.message}` },
+        ],
+      };
+    }
+  }
+);
+
+// Tool: Remove Lead from List
+// https://developer.adobe.com/marketo-apis/api/mapi/#operation/removeLeadsFromListUsingPOST
+server.tool(
+  'marketo_remove_lead_from_list',
+  {
+    listId: z.number(),
+    leadIds: z.array(z.number()),
+  },
+  async ({ listId, leadIds }) => {
+    try {
+      const data = {
+        input: leadIds.map(id => ({ id })),
+      };
+
+      const response = await makeApiRequest(
+        `/rest/v1/lists/${listId}/leads/delete.json`,
+        'POST',
+        data
+      );
+
+      return {
+        content: [{ type: 'text', text: JSON.stringify(response, null, 2) }],
+      };
+    } catch (error: any) {
+      return {
+        content: [
+          { type: 'text', text: `Error: ${error.response?.data?.message || error.message}` },
+        ],
+      };
+    }
+  }
+);
+
 const transport = new StdioServerTransport();
 await server.connect(transport);
