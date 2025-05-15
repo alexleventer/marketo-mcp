@@ -52,6 +52,7 @@ async function makeApiRequest(
 }
 
 // Tool: Get Forms
+// https://developer.adobe.com/marketo-apis/api/asset/#operation/browseForms2UsingGET
 server.tool(
   'marketo_get_forms',
   {
@@ -86,6 +87,7 @@ server.tool(
 );
 
 // Tool: Approve Form
+// https://developer.adobe.com/marketo-apis/api/asset/#operation/approveFromUsingPOST
 server.tool(
   'marketo_approve_form',
   {
@@ -152,6 +154,7 @@ server.tool(
 );
 
 // Tool: Get Form by ID
+// https://developer.adobe.com/marketo-apis/api/asset/#operation/getLpFormByIdUsingGET
 server.tool(
   'marketo_get_form_by_id',
   {
