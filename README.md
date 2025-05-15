@@ -142,6 +142,8 @@ Common error scenarios and solutions:
 └── .gitignore         # Git ignore rules
 ```
 
+You can run MCP inspector against this server with the following command: `npx @modelcontextprotocol/inspector node build/index.js`
+
 ### Contributing
 
 1. Fork the repository
