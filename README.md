@@ -2,6 +2,8 @@
 
 A Model Context Protocol server for interacting with the Marketo API. This server provides tools for managing Marketo forms, including listing, cloning, and approving forms.
 
+[![smithery badge](https://smithery.ai/badge/@alexleventer/marketo-mcp)](https://smithery.ai/server/@alexleventer/marketo-mcp)
+
 ## Prerequisites
 
 - Node.js (v14 or higher)
