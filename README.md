@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/alexleventer-marketo-mcp-badge.png)](https://mseep.ai/app/alexleventer-marketo-mcp)
+
 # Marketo MCP Server
 
 A Model Context Protocol server for interacting with the Marketo API. This server provides tools for managing Marketo forms, including listing, cloning, and approving forms.
