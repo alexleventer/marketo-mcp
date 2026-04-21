@@ -1,8 +1,17 @@
 {
     "name": "marketo-mcp",
-    "version": "1.0.0",
-    "main": "index.js",
+    "version": "1.1.0",
+    "description": "Marketo MCP Server — Model Context Protocol server for Adobe Marketo Engage. Manage forms, smart lists, channels, leads, activities, and lists from Claude Desktop and other MCP clients.",
+    "main": "build/index.js",
     "type": "module",
+    "bin": {
+        "marketo-mcp": "build/index.js"
+    },
+    "files": [
+        "build",
+        "README.md",
+        "LICENSE"
+    ],
     "scripts": {
         "build": "tsc && chmod 755 build/index.js && node generateMCPSettings",
         "start": "node build/index.js",
@@ -11,21 +20,47 @@
         "lint:fix": "eslint . --ext .ts --fix",
         "format": "prettier --write \"src/**/*.ts\"",
         "format:check": "prettier --check \"src/**/*.ts\"",
+        "typecheck": "tsc --noEmit",
+        "inspector": "npx @modelcontextprotocol/inspector node build/index.js",
         "prepare": "husky install"
     },
-    "keywords": [],
-    "author": "",
+    "keywords": [
+        "mcp",
+        "mcp-server",
+        "model-context-protocol",
+        "marketo",
+        "adobe-marketo",
+        "marketo-api",
+        "marketo-rest-api",
+        "marketing-automation",
+        "claude",
+        "claude-desktop",
+        "claude-mcp",
+        "anthropic",
+        "llm-tools",
+        "ai-tools",
+        "smithery"
+    ],
+    "author": "Alex Leventer",
     "license": "ISC",
-    "description": "",
+    "homepage": "https://github.com/alexleventer/marketo-mcp#readme",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/alexleventer/marketo-mcp.git"
+    },
+    "bugs": {
+        "url": "https://github.com/alexleventer/marketo-mcp/issues"
+    },
+    "engines": {
+        "node": ">=18"
+    },
     "dependencies": {
         "@modelcontextprotocol/sdk": "^1.8.0",
         "axios": "^1.8.4",
         "dotenv": "^16.4.1",
-        "jsonwebtoken": "^9.0.2",
         "zod": "^3.24.2"
     },
     "devDependencies": {
-        "@types/jsonwebtoken": "^9.0.9",
         "@types/node": "^22.14.0",
         "typescript": "^5.8.3",
         "@typescript-eslint/eslint-plugin": "^7.0.1",

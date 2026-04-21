@@ -1,159 +1,210 @@
 # Marketo MCP Server
 
-A Model Context Protocol server for interacting with the Marketo API. This server provides tools for managing Marketo forms, including listing, cloning, and approving forms.
+> **A [Model Context Protocol](https://modelcontextprotocol.io) server for [Adobe Marketo Engage](https://business.adobe.com/products/marketo/adobe-marketo.html).** Give Claude Desktop, Cursor, and other MCP-compatible clients direct, authenticated access to the Marketo REST API — read and write forms, smart lists, channels, leads, activities, and lists with natural language.
 
 [![smithery badge](https://smithery.ai/badge/@alexleventer/marketo-mcp)](https://smithery.ai/server/@alexleventer/marketo-mcp)
+[![npm version](https://img.shields.io/npm/v/marketo-mcp.svg)](https://www.npmjs.com/package/marketo-mcp)
+[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
+
+## Why
+
+Marketing ops, growth, and RevOps teams spend hours clicking through the Marketo UI to clone a form, approve assets, look up a lead, or audit a smart list. The **Marketo MCP Server** wires those same REST API operations into an LLM agent, so you can say:
+
+- *"Clone form 1234 into the Q2 Webinars folder and approve it."*
+- *"Show me recent activities for lead alex@example.com."*
+- *"Create a new email channel called 'Lifecycle Nurture'."*
+
+…and the model executes the actual Marketo API calls on your behalf.
+
+## Table of Contents
+
+- [Features](#features)
+- [Quick start](#quick-start)
+- [Prerequisites](#prerequisites)
+- [Configuration](#configuration)
+- [Available tools](#available-tools)
+- [Usage with Claude Desktop](#usage-with-claude-desktop)
+- [Usage with Cursor / other MCP clients](#usage-with-cursor--other-mcp-clients)
+- [Troubleshooting](#troubleshooting)
+- [Development](#development)
+- [Contributing](#contributing)
+
+## Features
+
+- **Form management** — list, inspect, clone, and approve forms via the Marketo Asset API
+- **Smart list operations** — list and inspect smart lists
+- **Channel CRUD** — create, read, update, and delete channels
+- **Lead database** — get leads by ID or email, create or update leads in bulk, delete leads
+- **Activity & change logs** — fetch activities and field changes for any lead
+- **List membership** — add or remove leads from static lists
+- **Automatic auth** — OAuth 2.0 client-credentials flow with token caching & refresh
+- **Stdio transport** — works out of the box with Claude Desktop, Cursor, and any MCP client that speaks stdio
+
+## Quick start
+
+### Option A — Smithery (recommended)
+
+```bash
+npx -y @smithery/cli install @alexleventer/marketo-mcp --client claude
+```
+
+Follow the prompts to paste in your Marketo base URL, client ID, and client secret.
+
+### Option B — npx (no install)
+
+Add the following to your MCP client's config (e.g. `claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "marketo": {
+      "command": "npx",
+      "args": ["-y", "marketo-mcp"],
+      "env": {
+        "MARKETO_BASE_URL": "https://123-ABC-456.mktorest.com/rest",
+        "MARKETO_CLIENT_ID": "your-client-id",
+        "MARKETO_CLIENT_SECRET": "your-client-secret"
+      }
+    }
+  }
+}
+```
+
+### Option C — from source
+
+```bash
+git clone https://github.com/alexleventer/marketo-mcp.git
+cd marketo-mcp
+npm install
+npm run build
+```
+
+Copy the config block printed by the build into your MCP client.
 
 ## Prerequisites
 
-- Node.js (v14 or higher)
-- Marketo API credentials (Client ID and Client Secret)
-- A Marketo instance with API access enabled
-- Claude Desktop installed
+- **Node.js 18 or higher**
+- **Marketo API credentials** (client ID & client secret from a LaunchPoint service)
+- **A Marketo instance** with REST API access enabled
+- **An MCP-compatible client** — [Claude Desktop](https://claude.ai/download), [Cursor](https://cursor.com), [Cline](https://github.com/cline/cline), or any other
 
-## Getting Started
+### Obtaining Marketo API credentials
 
-### 1. Obtain Marketo API Credentials
+1. Log into Marketo admin
+2. **Admin → Integration → LaunchPoint**
+3. **New → New Service**, set service type to **Custom** and pick a display name (e.g. `MCP Server`)
+4. Assign an API-only user with the permissions you need (Read-Only Assets, Read-Write Lead, etc.)
+5. Save the **Client ID** and **Client Secret**
+6. Your **base URL** is under **Admin → Integration → Web Services** → REST API Endpoint (strip `/rest/v1/*` — keep just `https://<munchkin>.mktorest.com/rest`)
 
-1. Log into your Marketo admin panel
-2. Navigate to **Admin** > **Integration** > **LaunchPoint**
-3. Click **New** > **New Service**
-4. Fill in the service details:
-   - Service: Custom
-   - Display Name: (e.g., "MCP Server")
-5. Save the provided **Client ID** and **Client Secret**
+## Configuration
 
-### 2. Configure Environment Variables
+All configuration is via environment variables:
 
-1. Create a `.env` file in the root directory:
+| Variable | Required | Description |
+|---|---|---|
+| `MARKETO_BASE_URL` | yes | Your REST endpoint, e.g. `https://123-ABC-456.mktorest.com/rest` |
+| `MARKETO_CLIENT_ID` | yes | LaunchPoint service client ID |
+| `MARKETO_CLIENT_SECRET` | yes | LaunchPoint service client secret |
 
-```env
-# Your Marketo instance URL (required)
-# Example: https://123-ABC-456.mktorest.com/rest
-MARKETO_BASE_URL=your-marketo-instance-url
+Copy `.env.example` to `.env` for local development.
 
-# Your API credentials (required)
-MARKETO_CLIENT_ID=your-client-id
-MARKETO_CLIENT_SECRET=your-client-secret
+## Available tools
+
+| Tool | Description |
+|---|---|
+| `marketo_get_forms` | List forms (filter by `status: draft|approved`, paginate with `maxReturn`/`offset`) |
+| `marketo_get_form_by_id` | Get a single form by ID |
+| `marketo_clone_form` | Clone a form into a destination folder |
+| `marketo_approve_form` | Approve a draft form |
+| `marketo_get_smart_lists` | List smart lists |
+| `marketo_get_smart_list_by_id` | Get a smart list by ID |
+| `marketo_get_channels` | List channels |
+| `marketo_get_channel_by_id` | Get a channel by ID |
+| `marketo_create_channel` | Create a new channel |
+| `marketo_update_channel` | Update an existing channel |
+| `marketo_delete_channel` | Delete a channel |
+| `marketo_get_lead_by_id` | Get a lead by numeric ID |
+| `marketo_get_lead_by_email` | Get a lead by email address |
+| `marketo_create_or_update_lead` | Bulk create or update leads |
+| `marketo_delete_lead` | Delete a lead |
+| `marketo_get_lead_activities` | Fetch activities for a lead (paginated) |
+| `marketo_get_lead_changes` | Fetch field-change history for a lead |
+| `marketo_get_lead_lists` | Get lists that a lead belongs to |
+| `marketo_add_lead_to_list` | Add leads to a static list |
+| `marketo_remove_lead_from_list` | Remove leads from a static list |
+
+Each tool accepts typed arguments validated with [zod](https://zod.dev/) and returns the raw Marketo JSON response. See the [Adobe Marketo REST API reference](https://developer.adobe.com/marketo-apis/api/) for field-level details.
+
+## Usage with Claude Desktop
+
+1. Install Claude Desktop
+2. Open the config at `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows)
+3. Paste the `mcpServers` block from [Quick start](#quick-start)
+4. Restart Claude Desktop
+
+## Usage with Cursor / other MCP clients
+
+Any MCP client that supports stdio servers will work. Point it at the built binary:
+
+```json
+{
+  "mcpServers": {
+    "marketo": {
+      "command": "npx",
+      "args": ["-y", "marketo-mcp"],
+      "env": { "MARKETO_BASE_URL": "...", "MARKETO_CLIENT_ID": "...", "MARKETO_CLIENT_SECRET": "..." }
+    }
+  }
+}
 ```
 
-### 3. Installation and Setup
+## Troubleshooting
+
+| Symptom | Likely cause |
+|---|---|
+| `Failed to authenticate with Marketo` | Wrong client ID/secret, or REST API not enabled for the LaunchPoint user |
+| `403 Access Denied` | The API-only user lacks the role for that endpoint (e.g. Asset API vs Lead Database API) |
+| `606 Max rate limit reached` | Marketo caps at 100 calls / 20s / instance — batch calls and add delays |
+| `610 Requested resource not found` | The folder/form/lead ID doesn't exist or is in a different workspace |
+| Auth works, but requests hang | Double-check `MARKETO_BASE_URL` has no trailing slash and ends with `/rest` |
+
+You can inspect tool calls locally with the MCP inspector:
 
 ```bash
-# Install dependencies
-npm install
-
-# Build the project
-npm run build
-
-# The build process will output configuration settings in your console
-# Copy these settings into your Claude Desktop developer configuration
+npm run inspector
 ```
-
-### 4. Claude Desktop Configuration
-
-1. Open Claude Desktop
-2. Go to Developer Settings
-3. [Paste the configuration settings](https://modelcontextprotocol.io/quickstart/user#2-add-the-filesystem-mcp-server) that were output during the build process
-4. Save the configuration
-5. Restart Claude Desktop
-
-
-## Available Tools
-
-### Get Forms List
-```typescript
-marketo_get_forms({
-  maxReturn: 200,  // optional, default: 200
-  offset: 0,       // optional, default: 0
-  status: 'draft'  // optional, 'draft' or 'approved'
-})
-```
-
-### Get Form by ID
-```typescript
-marketo_get_form_by_id({
-  formId: 1234
-})
-```
-
-### Clone Form
-```typescript
-marketo_clone_form({
-  formId: 1234,           // ID of form to clone
-  name: "New Form Name",  // Name for the cloned form
-  description: "Form description",  // optional
-  folderId: 5678         // optional, destination folder ID
-})
-```
-
-### Approve Form
-```typescript
-marketo_approve_form({
-  formId: 1234,
-  comment: "Approved by MCP server"  // optional
-})
-```
-
-## Error Handling
-
-Common error scenarios and solutions:
-
-1. **Authentication Errors**
-   - Verify your Client ID and Client Secret are correct
-   - Check that your API access is enabled in Marketo
-   - Ensure your instance URL is correct
-
-2. **Permission Errors**
-   - Verify your API user has sufficient permissions
-   - Check folder access permissions for form operations
-
-3. **Rate Limiting**
-   - The server automatically handles token refresh
-   - Consider implementing retry logic for rate-limited requests
-
-## Best Practices
-
-1. **Environment Management**
-   - Never commit `.env` files to version control
-   - Use different credentials for development and production
-   - Regularly rotate your API credentials
-
-2. **Security**
-   - Store credentials securely
-   - Use environment variables for sensitive data
-   - Monitor API access logs
-
-3. **Performance**
-   - Cache form data when appropriate
-   - Use pagination for large form lists
-   - Handle rate limits appropriately
 
 ## Development
 
-### Project Structure
 ```
-├── src/
-│   ├── index.ts        # Server entry point
-│   ├── auth.ts         # Token management
-│   └── constants.ts    # Configuration
-├── .env                # Environment variables (not in git)
-├── .env.example        # Example environment file
-└── .gitignore         # Git ignore rules
+src/
+├── index.ts       # MCP server + all tool registrations
+├── auth.ts        # OAuth token manager (caches until expiry)
+└── constants.ts   # Env var bindings
 ```
 
-You can run MCP inspector against this server with the following command: `npx @modelcontextprotocol/inspector node build/index.js`
+```bash
+npm run dev          # Run with ts-node + .env
+npm run typecheck    # Type-check without emit
+npm run lint         # ESLint
+npm run format       # Prettier
+npm run build        # Compile to build/
+```
 
-### Contributing
+## Contributing
 
-1. Fork the repository
+Issues and pull requests welcome at [github.com/alexleventer/marketo-mcp](https://github.com/alexleventer/marketo-mcp).
+
+1. Fork the repo
 2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
+3. `npm run lint && npm run typecheck`
+4. Open a PR
 
-## Support
+## License
 
-For issues and questions:
-1. Check the [Marketo REST API documentation](https://developers.marketo.com/rest-api/)
-2. Review common error scenarios above
-3. Submit an issue in the repository 
+ISC — see [LICENSE](LICENSE).
+
+---
+
+**Keywords:** marketo mcp server, marketo model context protocol, marketo claude, marketo ai, adobe marketo mcp, marketo api claude desktop, marketo automation llm, marketo engage mcp
