@@ -37,6 +37,8 @@ Marketing ops, growth, and RevOps teams spend hours clicking through the Marketo
 - **Lead database** — get leads by ID or email, create or update leads in bulk, delete leads
 - **Activity & change logs** — fetch activities and field changes for any lead
 - **List membership** — add or remove leads from static lists
+- **Program management** — list, inspect, clone programs and retrieve program members
+- **Email operations** — list, inspect, and send sample emails for QA
 - **Automatic auth** — OAuth 2.0 client-credentials flow with token caching & refresh
 - **Stdio transport** — works out of the box with Claude Desktop, Cursor, and any MCP client that speaks stdio
 
@@ -125,14 +127,21 @@ Copy `.env.example` to `.env` for local development.
 | `marketo_update_channel` | Update an existing channel |
 | `marketo_delete_channel` | Delete a channel |
 | `marketo_get_lead_by_id` | Get a lead by numeric ID |
-| `marketo_get_lead_by_email` | Get a lead by email address |
-| `marketo_create_or_update_lead` | Bulk create or update leads |
+| `marketo_get_lead_by_email` | Look up a lead by email address (filter API) |
+| `marketo_create_or_update_lead` | Bulk create or update leads (max 300 per call) |
 | `marketo_delete_lead` | Delete a lead |
 | `marketo_get_lead_activities` | Fetch activities for a lead (paginated) |
 | `marketo_get_lead_changes` | Fetch field-change history for a lead |
 | `marketo_get_lead_lists` | Get lists that a lead belongs to |
 | `marketo_add_lead_to_list` | Add leads to a static list |
 | `marketo_remove_lead_from_list` | Remove leads from a static list |
+| `marketo_get_programs` | List programs (filter by type, folder, tag, or date range) |
+| `marketo_get_program_by_id` | Get a program by ID |
+| `marketo_clone_program` | Clone a program and all its local assets into a folder |
+| `marketo_get_program_members` | Get leads that are members of a program |
+| `marketo_get_emails` | List emails (filter by status) |
+| `marketo_get_email_by_id` | Get an email by ID |
+| `marketo_send_sample_email` | Send a sample/preview email for QA |
 
 Each tool accepts typed arguments validated with [zod](https://zod.dev/) and returns the raw Marketo JSON response. See the [Adobe Marketo REST API reference](https://developer.adobe.com/marketo-apis/api/) for field-level details.
 
@@ -158,6 +167,20 @@ Any MCP client that supports stdio servers will work. Point it at the built bina
   }
 }
 ```
+
+## Rate limits
+
+Marketo enforces several API rate limits. Keep these in mind when running batch operations:
+
+| Limit | Value |
+|---|---|
+| **Short-term** | 100 calls per 20 seconds per instance |
+| **Daily** | 50,000 calls per day |
+| **Concurrent** | 10 simultaneous connections |
+| **Bulk import** | 10 MB per file, 10 concurrent jobs |
+| **Bulk export** | 500 MB per day, 2 concurrent jobs |
+
+If you hit `606 Max rate limit reached`, wait 20 seconds before retrying. The Marketo REST API returns a `Retry-After` header in some cases.
 
 ## Troubleshooting
 
